@@ -45,35 +45,34 @@ module CarmenSandiego
       end
     end
 
+    def self.add_query_list_setter(name)
+      s_name = name.to_s
+      module_eval(%Q{
+        attr_accessor :#{s_name}s
+
+        def include_#{s_name}(val)
+          @#{s_name}s.push(val) if !@#{s_name}s.include?(val)
+        end
+        public(:include_#{s_name})
+
+        def exclude_#{s_name}(val)
+          @#{s_name}s.delete(val) if @#{s_name}s.include?(val)
+        end
+        public(:exclude_#{s_name})
+
+        def set_#{s_name}s(vals)
+          @#{s_name}s = vals
+        end
+        public(:set_#{s_name}s)
+      })
+    end
+
     add_query_setter :radius
     add_query_setter :radius_unit, :distance_unit, :unit
     add_query_setter :latitude, :lat
     add_query_setter :longitude, :lon, :lng
-    
-    public
-    def include_result_type(type)
-      @result_types.push(type) if !@result_types.include?(type)
-    end
-
-    def exclude_result_type(type)
-      @result_types.delete(type) if @result_types.include?(type) 
-    end
-
-    def set_result_types(types)
-      @result_types = types
-    end
-
-    def include_prefetch_view_type(type)
-      @prefetch_view_types.push(type) if !@prefetch_view_types.include?(type)
-    end
-
-    def exclude_prefetch_view_type(type)
-      @prefetch_view_types.delete(type) if @prefetch_view_types.include?(type)
-    end
-    
-    def set_prefetch_view_types(types)
-      @prefetch_view_types = types
-    end
+    add_query_list_setter :result_type
+    add_query_list_setter :prefetch_view_type
   end
 
   class Detective
