@@ -4,9 +4,9 @@ require 'httparty'
 
 CarmenSandiego makes searching GeoAPI not suck for Ruby. 
 
-CarmenSandiego::Detective.new('api key goes here')
+d = CarmenSandiego::Detective.new('api key goes here')
 
-CarmenSandiego::Detective.search do |q|
+spots = d.search do |q|
   q.radius 1
   q.radius_unit :km
   q.lat 27.93547
@@ -19,6 +19,7 @@ module CarmenSandiego
   class QueryBuilder
     def initialize
       @result_types = []
+      @prefetch_view_types = []
     end
 
     attr_accessor :result_types
@@ -64,6 +65,18 @@ module CarmenSandiego
   end
 
   class Detective
+    class Spot 
+      attr_accessor :guid
+
+      def initialize(hash)
+        pp hash
+        @guid = hash['guid']
+      end
+
+      def get_listing(type)
+      end
+    end
+
     def initialize(api_key)
       @api_key = api_key
     end
@@ -80,13 +93,18 @@ module CarmenSandiego
     end
 
     def search_with_query(query)
-      raise InvalidQueryException if !(query.latitude && query.longitude && query.apikey)
-      HTTParty.get("http://api.geoapi.com/v1/search", :query => {
+      raise InvalidQueryException if !(query.latitude && query.longitude && @api_key)
+      result = HTTParty.get("http://api.geoapi.com/v1/search", :query => {
           :lat => query.latitude,
           :lon => query.longitude,
           :apikey => @api_key,
           :pretty => 0
-      })
+      })['result'].map { |h| create_entity_from_result(h) }
+    end
+
+    private
+    def create_entity_from_result(hash)
+      Spot.new(hash)
     end
   end
 end
